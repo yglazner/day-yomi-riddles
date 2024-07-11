@@ -1,3 +1,6 @@
+import datetime
+
+import requests
 import toga
 from toga.style.pack import COLUMN, Pack, ROW
 from travertino.constants import LTR, RTL
@@ -36,7 +39,20 @@ class TheApp:
         self.daf.items = [g_helpers.number_to_hebrew(i + 2) for i in
                                                      range(g_helpers.number_of_pages(selection.value))]
 
+    def set_current_daf(self):
+        date = datetime.datetime.now().date()
+        maschet, daf = g_helpers.date_to_daf(date)
+        self.maschtot.value = maschet
+        self._selected_masechet(self.maschtot)
+        self.daf.value = daf
 
+        self._selected_daf(self.daf)
+
+    def _selected_daf(self, daf):
+        maschet = self.maschtot.value
+        daf_name = daf.value
+        page_name = maschet + '_' + daf_name
+        requests.get()
 
 
 def build(app):
@@ -44,6 +60,8 @@ def build(app):
     app = TheApp()
 
     app.init_layout()
+
+    app.set_current_daf()
 
 
     return app.box
