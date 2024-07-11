@@ -11,6 +11,9 @@ def button_handler(widget):
     print("hello")
 
 
+URL_TEMPLATE = "https://raw.githubusercontent.com/yglazner/day-yomi-riddles/main/riddles/%s.json"
+
+
 class TheApp:
     def __init__(self):
         self.box = None
@@ -27,7 +30,7 @@ class TheApp:
         selection.style.padding = 20
         selection.style.flex = 1
         box.add(selection)
-        self.daf = selection = toga.Selection(items=[])
+        self.daf = selection = toga.Selection(items=[], on_select=self._selected_daf)
         selection.style.padding = 20
         selection.style.flex = 1
         box.add(selection)
@@ -52,7 +55,13 @@ class TheApp:
         maschet = self.maschtot.value
         daf_name = daf.value
         page_name = maschet + '_' + daf_name
-        requests.get()
+        url = URL_TEMPLATE % page_name
+        r = requests.get(url)
+        if r.ok:
+            print('BINGO')
+            print(r.json())
+        else:
+            print(r.text)
 
 
 def build(app):
