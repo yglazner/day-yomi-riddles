@@ -108,7 +108,8 @@ for maschet, num_of_pages in data.items():
     for i in range(num_of_pages):
         dapim.append((maschet, number_to_hebrew(i+2)))
         masechet_to_dapim[maschet].append(number_to_hebrew(i+2))
-print(len(dapim))
+assert len(dapim) == 2711
+
 
 def date_to_daf(date):
     """
