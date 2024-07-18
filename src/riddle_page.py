@@ -14,7 +14,7 @@ def build(app, data):
             return
         choosen = True
         w.style.background_color = RED
-        answers[ans+1].style.background_color = GREEN
+        answers[ans-1].style.background_color = GREEN
 
         def f(_):
             yield 3

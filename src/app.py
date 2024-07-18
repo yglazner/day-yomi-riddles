@@ -1,10 +1,14 @@
 import datetime
 import json
 import logging
+from copy import deepcopy
+
 import requests
 import toga
 from toga.style.pack import COLUMN, Pack, ROW
-from travertino.constants import LTR, RTL
+from travertino.constants import LTR, RTL, CENTER
+
+import about_page
 import g_helpers
 import results_page
 import riddle_page
@@ -23,29 +27,41 @@ class TheApp:
         self.app = app
         self.main_layout = None
         self.quetion_layout = None
+        self.init_quiz_data = None
+        self.quiz_data = None
 
     def init_layout(self):
-        self.current_view = toga.Box(style=Pack(direction=COLUMN, text_direction=RTL))
-        self.main_layout = box = toga.Box(style=Pack(direction=COLUMN, padding_top=50,text_direction=RTL))
-        label = toga.Label(text="בחר דף והתחל חידון", style=Pack(direction=COLUMN, padding_top=50, text_direction=RTL))
-        label.style.padding = 50
-        label.style.flex = 1
+        text_style = {'text_direction': RTL, 'text_align': CENTER, 'font_size': 32}
+        self.current_view = toga.Box(style=Pack(direction=COLUMN, **text_style))
+        self.main_layout = box = toga.Box(style=Pack(direction=COLUMN, padding_top=50, **text_style))
+        label = toga.Label(text="חי-דף-יומי",
+                           style=Pack(direction=COLUMN, padding_top=50, flex=True, **text_style))
         label.style.align = 'center'
         box.add(label)
         self.maschtot = selection = toga.Selection(items=g_helpers.maschtot_names(),
-                                                   on_change=self._selected_masechet)
-        selection.style.padding = 20
-        selection.style.flex = 1
+                                                   on_change=self._selected_masechet,
+                                                   style=Pack(flex=1, padding=20, **text_style))
         box.add(selection)
-        self.daf = selection = toga.Selection(items=[], on_change=self._selected_daf)
-        selection.style.padding = 20
-        selection.style.flex = 1
+        self.daf = selection = toga.Selection(items=[], on_change=self._selected_daf,
+                                              style=Pack(flex=1, padding=20, **text_style))
         box.add(selection)
-        self._start_riddles = b = toga.Button(text='🤓', on_press=no_op)
-        b.style.padding = 20
-        b.style.flex = 1
+        self._start_riddles = b = toga.Button(text='🤓', on_press=no_op,
+                                              style=Pack(flex=1, padding=20, **text_style))
         box.add(b)
+
+        about = toga.Button(text='אודות', on_press=self._about,
+                            style=Pack(flex=1, padding=20, **text_style))
+        box.add(about)
+
         self.current_view.add(box)
+
+    def _about(self, w):
+        self.current_view.clear()
+        self.current_view.add(about_page.build(self.app, {'callback': self._aboat_done}))
+
+    def _aboat_done(self, _):
+        self.current_view.clear()
+        self.current_view.add(self.main_layout)
 
     def _selected_masechet(self, selection):
         logger.debug('_selected_masechet %s', selection.value)
@@ -97,13 +113,15 @@ class TheApp:
         self._start_riddles.on_press = no_op
 
     def _init_the_quiz(self, data):
-        self.quiz_data = data
+        self.init_quiz_data = data
         self._start_riddles.text = '🤩 ' + 'התחל חידון' + ' 🤩'
         self._start_riddles.on_press = self._start_quiz
 
     def _start_quiz(self, w):
+        self.quiz_data = deepcopy(self.init_quiz_data)
         self.quiz_data['score'] = 0
         self.quiz_data['questions_len'] = len(self.quiz_data['questions'])
+        logger.info("%s" % self.quiz_data)
         self._continue_quiz()
 
     def _continue_quiz(self):
@@ -134,11 +152,8 @@ class TheApp:
 
 
 def build(app):
-    from toga.style.pack import CENTER, COLUMN, ROW, Pack
     app = TheApp(app)
-
     app.init_layout()
-
     app.set_current_daf()
     return app.current_view
 
